@@ -318,15 +318,15 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       const labelIndex = index + 1;
 
       const topSpot = createSpot({
-        size: new THREE.Vector3(tableDepth * 0.9, 0.04, tableWidth / 3 * 0.9),
-        position: new THREE.Vector3(0, tableHeight + 0.05, offset),
+        size: new THREE.Vector3(tableWidth / 3 * 0.9, 0.04, tableDepth * 0.9),
+        position: new THREE.Vector3(offset, tableHeight + 0.05, 0),
         label: `A${labelIndex}`,
       });
       tableSpotGroup.add(topSpot);
 
       const bottomSpot = createSpot({
-        size: new THREE.Vector3(tableDepth * 0.9, 0.5, tableWidth / 3 * 0.9),
-        position: new THREE.Vector3(0, 0.25, offset),
+        size: new THREE.Vector3(tableWidth / 3 * 0.9, 0.5, tableDepth * 0.9),
+        position: new THREE.Vector3(offset, 0.25, 0),
         label: `B${labelIndex}`,
       });
       tableSpotGroup.add(bottomSpot);
