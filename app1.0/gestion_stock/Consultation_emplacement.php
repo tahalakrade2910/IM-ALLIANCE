@@ -129,26 +129,39 @@ if (!isset($_SESSION['logged_in'])) {
 
     .rack {
       position: absolute;
-      width: 150px;
-      height: 200px;
-      padding: 18px 16px;
-      background: linear-gradient(160deg, #eef2f8 0%, #dce3ed 100%);
-      border: 2px solid #9aa5b1;
-      border-radius: 12px;
-      display: grid;
-      grid-template-rows: repeat(2, 1fr);
-      gap: 14px;
-      box-shadow: 0 18px 32px rgba(27, 38, 59, 0.28);
+      width: 168px;
+      height: 230px;
+      padding: 28px 20px 26px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 24px;
       transform-style: preserve-3d;
     }
 
+    .rack::before,
     .rack::after {
       content: "";
       position: absolute;
-      inset: -2px;
-      border-radius: 12px;
-      border: 2px solid rgba(27, 38, 59, 0.08);
-      pointer-events: none;
+      top: -18px;
+      bottom: -22px;
+      width: 14px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%);
+      transform-style: preserve-3d;
+    }
+
+    .rack::before {
+      left: -12px;
+      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.15), 160px 0 0 0 rgba(30, 58, 138, 0.95);
+      transform: translateZ(28px);
+    }
+
+    .rack::after {
+      left: -16px;
+      filter: brightness(0.75);
+      box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.12), 160px 0 0 0 rgba(30, 58, 138, 0.8);
+      transform: translateZ(-28px);
     }
 
     .rack-left-front {
@@ -168,27 +181,63 @@ if (!isset($_SESSION['logged_in'])) {
     }
 
     .shelf {
-      background: rgba(255, 255, 255, 0.75);
+      position: relative;
+      background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
       border-radius: 10px;
-      padding: 8px;
+      padding: 12px 10px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      box-shadow: inset 0 10px 18px rgba(65, 90, 119, 0.14);
+      gap: 10px;
+      box-shadow: inset 0 12px 22px rgba(15, 23, 42, 0.18);
+      transform-style: preserve-3d;
+    }
+
+    .shelf::before,
+    .shelf::after {
+      content: "";
+      position: absolute;
+      left: -22px;
+      right: -22px;
+      height: 16px;
+      background: linear-gradient(90deg, #fb923c 0%, #f97316 45%, #ea580c 100%);
+      border-radius: 10px;
+      box-shadow: 0 6px 12px rgba(249, 115, 22, 0.35);
+      transform-style: preserve-3d;
+    }
+
+    .shelf::before {
+      top: -14px;
+      z-index: 2;
+      transform: translateZ(30px);
+    }
+
+    .shelf::after {
+      bottom: -14px;
+      z-index: 0;
+      filter: brightness(0.85);
+      transform: translateZ(10px);
     }
 
     .location {
       position: relative;
-      background: rgba(65, 90, 119, 0.12);
-      border: 1px solid rgba(65, 90, 119, 0.4);
+      background: linear-gradient(180deg, rgba(30, 64, 175, 0.08) 0%, rgba(30, 64, 175, 0.18) 100%);
+      border: 1px solid rgba(30, 64, 175, 0.32);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: bold;
-      color: transparent;
-      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+      font-weight: 600;
+      color: rgba(15, 23, 42, 0.9);
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.75);
+      letter-spacing: 0.02em;
+      transition: transform 0.3s, background 0.3s, box-shadow 0.3s, color 0.3s;
       transform-style: preserve-3d;
+    }
+
+    .location::before {
+      content: attr(data-location);
+      position: relative;
+      z-index: 1;
     }
 
     .location::after {
@@ -214,6 +263,8 @@ if (!isset($_SESSION['logged_in'])) {
       background: #e11d48;
       box-shadow: 0 14px 20px rgba(225, 29, 72, 0.35);
       transform: translateZ(16px) scale(1.04);
+      color: #fff;
+      text-shadow: none;
     }
 
     .location:hover::after,
