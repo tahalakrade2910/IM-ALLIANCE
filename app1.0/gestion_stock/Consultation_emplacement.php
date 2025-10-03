@@ -27,7 +27,7 @@ if (!isset($_SESSION['logged_in'])) {
 
     .return-buttons {
       position: fixed;
-      top: 20px;
+      top: calc(var(--top-nav-bottom, 96px) + 16px);
       left: 20px;
       display: flex;
       flex-direction: column;
@@ -152,6 +152,21 @@ if (!isset($_SESSION['logged_in'])) {
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   document.getElementById('app').appendChild(renderer.domElement);
+
+  const topNav = document.querySelector('.top-nav');
+
+  function updateReturnButtonOffset() {
+    if (!topNav) {
+      return;
+    }
+
+    const navBounds = topNav.getBoundingClientRect();
+    const offset = Math.max(navBounds.bottom, 0);
+    document.documentElement.style.setProperty('--top-nav-bottom', `${offset}px`);
+  }
+
+  updateReturnButtonOffset();
+  window.addEventListener('resize', updateReturnButtonOffset);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 1.3, -2.0);
