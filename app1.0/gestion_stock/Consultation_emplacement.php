@@ -135,9 +135,7 @@ if (!isset($_SESSION['logged_in'])) {
       transform-style: preserve-3d;
       transform: rotateX(var(--rotate-x)) rotateY(var(--rotate-y));
       transition: transform 0.1s linear;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: block;
     }
 
     .floor {
@@ -149,11 +147,47 @@ if (!isset($_SESSION['logged_in'])) {
       transform: translateZ(-60px) rotateX(90deg);
     }
 
+    .floor-line {
+      position: absolute;
+      background: linear-gradient(90deg, rgba(20, 20, 25, 0.85), rgba(45, 45, 60, 0.95));
+      transform: translateZ(-59px) rotateX(90deg);
+      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+    }
+
+    .floor-line.horizontal {
+      height: 10px;
+      width: 360px;
+      left: 110px;
+      bottom: 90px;
+    }
+
+    .floor-line.vertical {
+      width: 10px;
+      height: 240px;
+      left: 110px;
+      bottom: 90px;
+    }
+
     .rack {
-      position: relative;
-      width: min(480px, 92%);
-      height: 280px;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 260px;
+      height: 260px;
       transform-style: preserve-3d;
+    }
+
+    .rack-front {
+      transform: translate3d(-50%, -50%, 0) translate3d(-140px, 0, 130px) rotateY(18deg);
+    }
+
+    .rack-side {
+      transform: translate3d(-50%, -50%, 0) translate3d(-260px, 0, -10px) rotateY(108deg);
+    }
+
+    .rack-back {
+      transform: translate3d(-50%, -50%, 0) translate3d(-20px, 0, -140px) rotateY(-8deg);
     }
 
     .rack::before,
@@ -206,6 +240,10 @@ if (!isset($_SESSION['logged_in'])) {
       box-shadow: 0 10px 14px rgba(17, 34, 64, 0.25);
     }
 
+    .rack-side .brace {
+      height: 180px;
+    }
+
     .brace.right {
       right: 56px;
       transform: translateZ(12px) rotateZ(-12deg);
@@ -217,8 +255,8 @@ if (!isset($_SESSION['logged_in'])) {
 
     .beam-layer {
       position: absolute;
-      left: 60px;
-      right: 60px;
+      left: 52px;
+      right: 52px;
       height: 16px;
       background: linear-gradient(180deg, #ff7a29, #dd4f13);
       border-radius: 8px;
@@ -242,10 +280,10 @@ if (!isset($_SESSION['logged_in'])) {
 
     .shelf-group {
       position: absolute;
-      left: 70px;
-      right: 70px;
+      left: 62px;
+      right: 62px;
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
       gap: 22px;
       transform: translateZ(40px);
     }
@@ -276,6 +314,32 @@ if (!isset($_SESSION['logged_in'])) {
       box-shadow: 0 16px 28px rgba(20, 34, 63, 0.28);
       transform: translateZ(-16px);
       pointer-events: none;
+    }
+
+    .door {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 78px;
+      height: 160px;
+      border-radius: 10px;
+      background: linear-gradient(180deg, #f1f5f9 0%, #d9e1ef 45%, #b8c5dc 100%);
+      box-shadow: 0 18px 26px rgba(15, 23, 42, 0.28);
+      transform: translate3d(-50%, -50%, 0) translate3d(210px, -10px, -60px) rotateY(-94deg);
+      transform-origin: left center;
+    }
+
+    .door::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 18px;
+      width: 24px;
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #334155, #0f172a);
+      transform: translateY(-50%);
+      box-shadow: 0 6px 12px rgba(15, 23, 42, 0.2);
     }
 
     .location {
@@ -403,7 +467,10 @@ if (!isset($_SESSION['logged_in'])) {
       <div class="scene" id="scene">
         <div class="warehouse" id="warehouse">
           <div class="floor"></div>
-          <div class="rack">
+          <div class="floor-line horizontal" aria-hidden="true"></div>
+          <div class="floor-line vertical" aria-hidden="true"></div>
+
+          <div class="rack rack-front" aria-label="Rack avant">
             <span class="post-back left"></span>
             <span class="post-back right"></span>
             <span class="brace left"></span>
@@ -419,11 +486,6 @@ if (!isset($_SESSION['logged_in'])) {
                 <div class="location" data-location="A2" aria-label="A2" tabindex="0"></div>
                 <div class="location" data-location="A3" aria-label="A3" tabindex="0"></div>
               </div>
-              <div class="shelf-surface">
-                <div class="location" data-location="C1" aria-label="C1" tabindex="0"></div>
-                <div class="location" data-location="C2" aria-label="C2" tabindex="0"></div>
-                <div class="location" data-location="C3" aria-label="C3" tabindex="0"></div>
-              </div>
             </div>
 
             <div class="shelf-group" data-level="2">
@@ -432,19 +494,61 @@ if (!isset($_SESSION['logged_in'])) {
                 <div class="location" data-location="B2" aria-label="B2" tabindex="0"></div>
                 <div class="location" data-location="B3" aria-label="B3" tabindex="0"></div>
               </div>
+            </div>
+
+            <div class="shelf-group" data-level="3">
+              <div class="shelf-surface">
+                <div class="location" data-location="C1" aria-label="C1" tabindex="0"></div>
+                <div class="location" data-location="C2" aria-label="C2" tabindex="0"></div>
+                <div class="location" data-location="C3" aria-label="C3" tabindex="0"></div>
+              </div>
+            </div>
+
+            <div class="shelf-group" data-level="4">
               <div class="shelf-surface">
                 <div class="location" data-location="D1" aria-label="D1" tabindex="0"></div>
                 <div class="location" data-location="D2" aria-label="D2" tabindex="0"></div>
                 <div class="location" data-location="D3" aria-label="D3" tabindex="0"></div>
               </div>
             </div>
+          </div>
 
-            <div class="shelf-group" data-level="3">
+          <div class="rack rack-side" aria-label="Rack latéral">
+            <span class="post-back left"></span>
+            <span class="post-back right"></span>
+            <span class="brace left"></span>
+            <span class="brace right"></span>
+            <span class="beam-layer" data-level="1"></span>
+            <span class="beam-layer" data-level="2"></span>
+            <span class="beam-layer" data-level="3"></span>
+
+            <div class="shelf-group" data-level="1">
               <div class="shelf-surface">
                 <div class="location" data-location="AA1" aria-label="AA1" tabindex="0"></div>
                 <div class="location" data-location="AA2" aria-label="AA2" tabindex="0"></div>
                 <div class="location" data-location="AA3" aria-label="AA3" tabindex="0"></div>
               </div>
+            </div>
+
+            <div class="shelf-group" data-level="2">
+              <div class="shelf-surface">
+                <div class="location" data-location="BB1" aria-label="BB1" tabindex="0"></div>
+                <div class="location" data-location="BB2" aria-label="BB2" tabindex="0"></div>
+                <div class="location" data-location="BB3" aria-label="BB3" tabindex="0"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rack rack-back" aria-label="Rack arrière">
+            <span class="post-back left"></span>
+            <span class="post-back right"></span>
+            <span class="brace left"></span>
+            <span class="brace right"></span>
+            <span class="beam-layer" data-level="1"></span>
+            <span class="beam-layer" data-level="2"></span>
+            <span class="beam-layer" data-level="3"></span>
+
+            <div class="shelf-group" data-level="1">
               <div class="shelf-surface">
                 <div class="location" data-location="CC1" aria-label="CC1" tabindex="0"></div>
                 <div class="location" data-location="CC2" aria-label="CC2" tabindex="0"></div>
@@ -452,12 +556,7 @@ if (!isset($_SESSION['logged_in'])) {
               </div>
             </div>
 
-            <div class="shelf-group" data-level="4">
-              <div class="shelf-surface">
-                <div class="location" data-location="BB1" aria-label="BB1" tabindex="0"></div>
-                <div class="location" data-location="BB2" aria-label="BB2" tabindex="0"></div>
-                <div class="location" data-location="BB3" aria-label="BB3" tabindex="0"></div>
-              </div>
+            <div class="shelf-group" data-level="2">
               <div class="shelf-surface">
                 <div class="location" data-location="DD1" aria-label="DD1" tabindex="0"></div>
                 <div class="location" data-location="DD2" aria-label="DD2" tabindex="0"></div>
@@ -465,6 +564,8 @@ if (!isset($_SESSION['logged_in'])) {
               </div>
             </div>
           </div>
+
+          <div class="door" role="img" aria-label="Porte"></div>
         </div>
       </div>
       <p>Faites pivoter la scène en maintenant le clic et survolez une zone pour afficher sa désignation.</p>
