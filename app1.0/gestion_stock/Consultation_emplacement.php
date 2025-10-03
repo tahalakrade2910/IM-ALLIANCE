@@ -21,50 +21,18 @@ if (!isset($_SESSION['logged_in'])) {
 
     main {
       display: flex;
-      gap: 30px;
-      padding: 2rem;
-      flex-wrap: wrap;
       justify-content: center;
+      padding: 2.5rem 1.5rem 3rem;
     }
 
-    /* Grille */
-    .grille {
-      display: grid;
-      grid-template-columns: repeat(3, 80px);
-      grid-gap: 10px;
-    }
-
-    .case {
-      width: 80px;
-      height: 80px;
-      background: #d9e2ef;
-      border: 2px solid #415a77;
-      color: #1b263b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.3s;
-      font-weight: bold;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .case:hover {
-      background: #a9c4eb;
-      transform: translateY(-2px);
-    }
-
-    /* Zone aperçu */
     .consultation {
-      flex: 1;
-      min-width: 360px;
+      width: min(760px, 100%);
       border: 2px solid #415a77;
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: 16px;
+      padding: 28px;
       text-align: center;
       background: #f9fbff;
-      box-shadow: 0 10px 30px rgba(65, 90, 119, 0.18);
+      box-shadow: 0 18px 48px rgba(65, 90, 119, 0.22);
     }
 
     .consultation h3 {
@@ -82,8 +50,8 @@ if (!isset($_SESSION['logged_in'])) {
     .scene {
       --rotate-x: 18deg;
       --rotate-y: -26deg;
-      width: min(480px, 100%);
-      height: 320px;
+      width: min(520px, 100%);
+      height: 340px;
       margin: 0 auto;
       perspective: 1200px;
       cursor: grab;
@@ -161,16 +129,16 @@ if (!isset($_SESSION['logged_in'])) {
 
     .rack {
       position: absolute;
-      width: 140px;
-      height: 190px;
-      padding: 16px 14px;
-      background: linear-gradient(160deg, #eceff4 0%, #d8dee9 100%);
+      width: 150px;
+      height: 200px;
+      padding: 18px 16px;
+      background: linear-gradient(160deg, #eef2f8 0%, #dce3ed 100%);
       border: 2px solid #9aa5b1;
-      border-radius: 10px;
+      border-radius: 12px;
       display: grid;
       grid-template-rows: repeat(2, 1fr);
-      gap: 12px;
-      box-shadow: 0 15px 25px rgba(27, 38, 59, 0.25);
+      gap: 14px;
+      box-shadow: 0 18px 32px rgba(27, 38, 59, 0.28);
       transform-style: preserve-3d;
     }
 
@@ -184,80 +152,84 @@ if (!isset($_SESSION['logged_in'])) {
     }
 
     .rack-left-front {
-      transform: translate3d(40px, 70px, 90px);
+      transform: translate3d(40px, 74px, 96px);
     }
 
     .rack-right-front {
-      transform: translate3d(210px, 60px, 60px) rotateY(-14deg);
+      transform: translate3d(226px, 64px, 68px) rotateY(-14deg);
     }
 
     .rack-left-back {
-      transform: translate3d(70px, 40px, -90px) rotateY(18deg);
+      transform: translate3d(74px, 42px, -96px) rotateY(18deg);
     }
 
     .rack-right-back {
-      transform: translate3d(240px, 30px, -120px) rotateY(-10deg);
+      transform: translate3d(260px, 36px, -128px) rotateY(-10deg);
     }
 
     .shelf {
-      background: rgba(255, 255, 255, 0.7);
-      border-radius: 8px;
-      padding: 6px;
+      background: rgba(255, 255, 255, 0.75);
+      border-radius: 10px;
+      padding: 8px;
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      box-shadow: inset 0 8px 12px rgba(65, 90, 119, 0.12);
+      gap: 8px;
+      box-shadow: inset 0 10px 18px rgba(65, 90, 119, 0.14);
     }
 
     .location {
       position: relative;
       background: rgba(65, 90, 119, 0.12);
       border: 1px solid rgba(65, 90, 119, 0.4);
-      border-radius: 6px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: bold;
-      color: #1b263b;
-      transition: transform 0.3s, background 0.3s, color 0.3s, box-shadow 0.3s;
+      color: transparent;
+      transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
       transform-style: preserve-3d;
     }
 
     .location::after {
       content: attr(data-location);
       position: absolute;
-      top: -22px;
-      right: -6px;
+      top: -26px;
+      right: -4px;
       background: #e11d48;
       color: #fff;
-      padding: 2px 6px;
+      padding: 4px 8px;
       border-radius: 4px;
       font-size: 0.7rem;
-      transform: translateZ(10px);
-      box-shadow: 0 2px 6px rgba(225, 29, 72, 0.35);
+      transform: translateZ(14px);
+      box-shadow: 0 4px 10px rgba(225, 29, 72, 0.35);
       opacity: 0;
-      transition: opacity 0.3s;
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
     }
 
+    .location:hover,
+    .location:focus-visible,
     .location.active {
       background: #e11d48;
-      color: #fff;
-      box-shadow: 0 10px 16px rgba(225, 29, 72, 0.35);
-      transform: translateZ(12px) scale(1.05);
+      box-shadow: 0 14px 20px rgba(225, 29, 72, 0.35);
+      transform: translateZ(16px) scale(1.04);
     }
 
+    .location:hover::after,
+    .location:focus-visible::after,
     .location.active::after {
       opacity: 1;
+      transform: translateZ(18px);
+    }
+
+    .location:focus-visible {
+      outline: 3px solid rgba(65, 90, 119, 0.35);
     }
 
     @media (max-width: 900px) {
       main {
-        flex-direction: column;
-        align-items: center;
-      }
-
-      .consultation {
-        width: 100%;
+        padding: 1.5rem 1rem 2rem;
       }
     }
   </style>
@@ -266,36 +238,6 @@ if (!isset($_SESSION['logged_in'])) {
 <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
 
 <main>
-  <!-- Grille -->
-  <div class="grille">
-    <div class="case" data-img="A1.png">A1</div>
-    <div class="case" data-img="A2.png">A2</div>
-    <div class="case" data-img="A3.png">A3</div>
-    <div class="case" data-img="B1.png">B1</div>
-    <div class="case" data-img="B2.png">B2</div>
-    <div class="case" data-img="B3.png">B3</div>
-    <div class="case" data-img="C1.png">C1</div>
-    <div class="case" data-img="C2.png">C2</div>
-    <div class="case" data-img="C3.png">C3</div>
-    <div class="case" data-img="D1.png">D1</div>
-    <div class="case" data-img="D2.png">D2</div>
-    <div class="case" data-img="D3.png">D3</div>
-
-    <div class="case" data-img="AA1.png">AA1</div>
-    <div class="case" data-img="AA2.png">AA2</div>
-    <div class="case" data-img="AA3.png">AA3</div>
-    <div class="case" data-img="BB1.png">BB1</div>
-    <div class="case" data-img="BB2.png">BB2</div>
-    <div class="case" data-img="BB3.png">BB3</div>
-    <div class="case" data-img="CC1.png">CC1</div>
-    <div class="case" data-img="CC2.png">CC2</div>
-    <div class="case" data-img="CC3.png">CC3</div>
-    <div class="case" data-img="DD1.png">DD1</div>
-    <div class="case" data-img="DD2.png">DD2</div>
-    <div class="case" data-img="DD3.png">DD3</div>
-  </div>
-
-  <!-- Zone de consultation -->
   <div class="consultation">
     <h3>Vue 3D de l’emplacement</h3>
     <div class="scene" id="scene">
@@ -305,76 +247,64 @@ if (!isset($_SESSION['logged_in'])) {
 
         <div class="rack rack-left-front">
           <div class="shelf">
-            <div class="location" data-location="A1">A1</div>
-            <div class="location" data-location="A2">A2</div>
-            <div class="location" data-location="A3">A3</div>
+            <div class="location" data-location="A1" aria-label="A1" tabindex="0"></div>
+            <div class="location" data-location="A2" aria-label="A2" tabindex="0"></div>
+            <div class="location" data-location="A3" aria-label="A3" tabindex="0"></div>
           </div>
           <div class="shelf">
-            <div class="location" data-location="B1">B1</div>
-            <div class="location" data-location="B2">B2</div>
-            <div class="location" data-location="B3">B3</div>
+            <div class="location" data-location="B1" aria-label="B1" tabindex="0"></div>
+            <div class="location" data-location="B2" aria-label="B2" tabindex="0"></div>
+            <div class="location" data-location="B3" aria-label="B3" tabindex="0"></div>
           </div>
         </div>
 
         <div class="rack rack-right-front">
           <div class="shelf">
-            <div class="location" data-location="C1">C1</div>
-            <div class="location" data-location="C2">C2</div>
-            <div class="location" data-location="C3">C3</div>
+            <div class="location" data-location="C1" aria-label="C1" tabindex="0"></div>
+            <div class="location" data-location="C2" aria-label="C2" tabindex="0"></div>
+            <div class="location" data-location="C3" aria-label="C3" tabindex="0"></div>
           </div>
           <div class="shelf">
-            <div class="location" data-location="D1">D1</div>
-            <div class="location" data-location="D2">D2</div>
-            <div class="location" data-location="D3">D3</div>
+            <div class="location" data-location="D1" aria-label="D1" tabindex="0"></div>
+            <div class="location" data-location="D2" aria-label="D2" tabindex="0"></div>
+            <div class="location" data-location="D3" aria-label="D3" tabindex="0"></div>
           </div>
         </div>
 
         <div class="rack rack-left-back">
           <div class="shelf">
-            <div class="location" data-location="AA1">AA1</div>
-            <div class="location" data-location="AA2">AA2</div>
-            <div class="location" data-location="AA3">AA3</div>
+            <div class="location" data-location="AA1" aria-label="AA1" tabindex="0"></div>
+            <div class="location" data-location="AA2" aria-label="AA2" tabindex="0"></div>
+            <div class="location" data-location="AA3" aria-label="AA3" tabindex="0"></div>
           </div>
           <div class="shelf">
-            <div class="location" data-location="BB1">BB1</div>
-            <div class="location" data-location="BB2">BB2</div>
-            <div class="location" data-location="BB3">BB3</div>
+            <div class="location" data-location="BB1" aria-label="BB1" tabindex="0"></div>
+            <div class="location" data-location="BB2" aria-label="BB2" tabindex="0"></div>
+            <div class="location" data-location="BB3" aria-label="BB3" tabindex="0"></div>
           </div>
         </div>
 
         <div class="rack rack-right-back">
           <div class="shelf">
-            <div class="location" data-location="CC1">CC1</div>
-            <div class="location" data-location="CC2">CC2</div>
-            <div class="location" data-location="CC3">CC3</div>
+            <div class="location" data-location="CC1" aria-label="CC1" tabindex="0"></div>
+            <div class="location" data-location="CC2" aria-label="CC2" tabindex="0"></div>
+            <div class="location" data-location="CC3" aria-label="CC3" tabindex="0"></div>
           </div>
           <div class="shelf">
-            <div class="location" data-location="DD1">DD1</div>
-            <div class="location" data-location="DD2">DD2</div>
-            <div class="location" data-location="DD3">DD3</div>
+            <div class="location" data-location="DD1" aria-label="DD1" tabindex="0"></div>
+            <div class="location" data-location="DD2" aria-label="DD2" tabindex="0"></div>
+            <div class="location" data-location="DD3" aria-label="DD3" tabindex="0"></div>
           </div>
         </div>
       </div>
     </div>
-    <p>Faites pivoter la scène en maintenant le clic et surlignez un emplacement depuis la liste.</p>
+    <p>Faites pivoter la scène en maintenant le clic et survolez une zone pour afficher sa désignation.</p>
   </div>
 
 </main>
 
   <script>
-    const cases = document.querySelectorAll('.case');
-    const locations = document.querySelectorAll('.location');
     const scene = document.getElementById('scene');
-    const warehouse = document.getElementById('warehouse');
-
-    const locationMap = new Map();
-    locations.forEach(location => {
-      locationMap.set(location.dataset.location, location);
-      location.addEventListener('click', () => {
-        highlightLocation(location.dataset.location);
-      });
-    });
-
     let currentRotation = { x: 18, y: -26 };
     let isPointerDown = false;
     let start = { x: 0, y: 0 };
@@ -384,21 +314,6 @@ if (!isset($_SESSION['logged_in'])) {
       scene.style.setProperty('--rotate-x', `${x}deg`);
       scene.style.setProperty('--rotate-y', `${y}deg`);
     }
-
-    function highlightLocation(id) {
-      locations.forEach(location => location.classList.remove('active'));
-      const target = locationMap.get(id);
-      if (target) {
-        target.classList.add('active');
-        target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-      }
-    }
-
-    cases.forEach(c => {
-      c.addEventListener('click', () => {
-        highlightLocation(c.textContent.trim());
-      });
-    });
 
     scene.addEventListener('pointerdown', (event) => {
       isPointerDown = true;
