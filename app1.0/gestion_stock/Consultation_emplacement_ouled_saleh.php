@@ -310,21 +310,27 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
     const tableDepth = 0.8;
     const tableHeight = 0.9;
 
-    for (let i = 0; i < 3; i++) {
+    const slotOffsets = Array.from({ length: 3 }, (_, index) =>
+      tableWidth / 2 - (index + 0.5) * (tableWidth / 3)
+    );
+
+    slotOffsets.forEach((offset, index) => {
+      const labelIndex = index + 1;
+
       const topSpot = createSpot({
         size: new THREE.Vector3(tableDepth * 0.9, 0.04, tableWidth / 3 * 0.9),
-        position: new THREE.Vector3(0, tableHeight + 0.05, -tableWidth / 2 + (i + 0.5) * (tableWidth / 3)),
-        label: `A${i + 1}`,
+        position: new THREE.Vector3(0, tableHeight + 0.05, offset),
+        label: `A${labelIndex}`,
       });
       tableSpotGroup.add(topSpot);
 
       const bottomSpot = createSpot({
         size: new THREE.Vector3(tableDepth * 0.9, 0.5, tableWidth / 3 * 0.9),
-        position: new THREE.Vector3(0, 0.25, -tableWidth / 2 + (i + 0.5) * (tableWidth / 3)),
-        label: `B${i + 1}`,
+        position: new THREE.Vector3(0, 0.25, offset),
+        label: `B${labelIndex}`,
       });
       tableSpotGroup.add(bottomSpot);
-    }
+    });
 
     table.add(tableSpotGroup);
 
