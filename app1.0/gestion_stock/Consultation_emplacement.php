@@ -25,6 +25,43 @@ if (!isset($_SESSION['logged_in'])) {
       min-height: 100%;
     }
 
+    .return-buttons {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .return-buttons a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      font: 600 14px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      text-decoration: none;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .return-buttons a:hover,
+    .return-buttons a:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.18);
+    }
+
+    .return-buttons a:focus-visible {
+      outline: 2px solid #1d4ed8;
+      outline-offset: 2px;
+    }
+
     #app {
       position: fixed;
       inset: 0;
@@ -90,6 +127,14 @@ if (!isset($_SESSION['logged_in'])) {
 <body>
 <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
 <main class="visualisation-3d" role="main">
+  <nav class="return-buttons" aria-label="Navigation retour">
+    <a href="dashboard.php#consulter" class="btn-retour">
+      ← Retour à la liste des stocks
+    </a>
+    <a href="consulter_stock.php" class="btn-retour">
+      ← Retour à la gestion des stocks
+    </a>
+  </nav>
   <div id="app" aria-label="Visualisation 3D de l'entrepôt"></div>
   <div class="hint"><b>Contrôles :</b> glisser pour orbiter • molette pour zoomer • clic droit pour déplacer</div>
   <div class="testpanel" id="testpanel" role="status">Initialisation de la scène…</div>
