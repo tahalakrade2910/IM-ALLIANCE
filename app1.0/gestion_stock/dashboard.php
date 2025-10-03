@@ -18,6 +18,10 @@ if (!isset($lieuxDisponibles[$currentLieu])) {
   $currentLieu = $defaultLieu;
 }
 
+$consultationPage = $currentLieu === 'Ouled Saleh'
+  ? 'Consultation_emplacement_ouled_saleh.php'
+  : 'Consultation_emplacement.php';
+
 if ($currentLieu === $defaultLieu) {
   $stmt = $pdo->prepare("SELECT * FROM stock WHERE lieu = :lieu OR lieu IS NULL ORDER BY id DESC");
   $stmt->execute(['lieu' => $currentLieu]);
@@ -885,7 +889,7 @@ a.back-home:hover {
   </script>
 
 <div class="menu-actions" style="margin:20px 0; text-align:center;">
-    <a href="Consultation_emplacement.php?lieu=<?= urlencode($currentLieu) ?>&section=consulter"
+    <a href="<?= htmlspecialchars($consultationPage, ENT_QUOTES) ?>?lieu=<?= urlencode($currentLieu) ?>&section=consulter"
        style="background:#007bff; color:white; padding:10px 20px;
               border-radius:8px; text-decoration:none; font-weight:bold;">
         🗂️ Voir les emplacements en 3D
