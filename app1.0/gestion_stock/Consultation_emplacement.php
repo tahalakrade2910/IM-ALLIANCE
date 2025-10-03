@@ -115,9 +115,9 @@ if (!isset($_SESSION['logged_in'])) {
     /* Vue 3D */
     .scene {
       --rotate-x: 12deg;
-      --rotate-y: -12deg;
-      width: min(540px, 100%);
-      height: 360px;
+      --rotate-y: -14deg;
+      width: min(640px, 100%);
+      height: 420px;
       margin: 0 auto;
       perspective: 1200px;
       cursor: grab;
@@ -140,54 +140,42 @@ if (!isset($_SESSION['logged_in'])) {
 
     .floor {
       position: absolute;
-      inset: 30px 60px 0;
-      background: linear-gradient(180deg, rgba(207, 220, 238, 0.65), rgba(153, 174, 210, 0.85));
-      border-radius: 26px 26px 10px 10px;
-      box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.18);
-      transform: translateZ(-60px) rotateX(90deg);
+      inset: 26px 42px 18px;
+      background: linear-gradient(180deg, rgba(207, 220, 238, 0.8), rgba(153, 174, 210, 0.95));
+      border-radius: 36px 36px 24px 24px;
+      box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.18);
+      transform: translateZ(-68px) rotateX(90deg);
     }
 
-    .floor-line {
+    .floor::after {
+      content: "";
       position: absolute;
-      background: linear-gradient(90deg, rgba(20, 20, 25, 0.85), rgba(45, 45, 60, 0.95));
-      transform: translateZ(-59px) rotateX(90deg);
-      box-shadow: 0 10px 18px rgba(0, 0, 0, 0.25);
-      border-radius: 12px;
-    }
-
-    .floor-line.horizontal {
-      height: 10px;
-      width: 360px;
-      left: 110px;
-      bottom: 90px;
-    }
-
-    .floor-line.vertical {
-      width: 10px;
-      height: 240px;
-      left: 110px;
-      bottom: 90px;
+      inset: 34px 140px 48px;
+      background: linear-gradient(180deg, rgba(248, 250, 252, 0.55), rgba(226, 232, 240, 0.3));
+      border-radius: 28px;
+      box-shadow: inset 0 12px 24px rgba(30, 41, 59, 0.18);
     }
 
     .rack {
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 260px;
+      width: 240px;
       height: 260px;
       transform-style: preserve-3d;
+      filter: drop-shadow(0 18px 22px rgba(15, 23, 42, 0.22));
     }
 
     .rack-front {
-      transform: translate3d(-50%, -50%, 0) translate3d(-140px, 0, 130px) rotateY(18deg);
+      transform: translate3d(-50%, -50%, 0) translate3d(-260px, -12px, 150px) rotateY(18deg);
     }
 
     .rack-side {
-      transform: translate3d(-50%, -50%, 0) translate3d(-260px, 0, -10px) rotateY(108deg);
+      transform: translate3d(-50%, -50%, 0) translate3d(20px, -12px, 150px) rotateY(-18deg);
     }
 
     .rack-back {
-      transform: translate3d(-50%, -50%, 0) translate3d(-20px, 0, -140px) rotateY(-8deg);
+      transform: translate3d(-50%, -50%, 0) translate3d(-120px, -12px, -220px) rotateY(6deg);
     }
 
     .rack::before,
@@ -325,7 +313,7 @@ if (!isset($_SESSION['logged_in'])) {
       border-radius: 10px;
       background: linear-gradient(180deg, #f1f5f9 0%, #d9e1ef 45%, #b8c5dc 100%);
       box-shadow: 0 18px 26px rgba(15, 23, 42, 0.28);
-      transform: translate3d(-50%, -50%, 0) translate3d(210px, -10px, -60px) rotateY(-94deg);
+      transform: translate3d(-50%, -50%, 0) translate3d(320px, -20px, -40px) rotateY(-96deg);
       transform-origin: left center;
     }
 
@@ -467,8 +455,6 @@ if (!isset($_SESSION['logged_in'])) {
       <div class="scene" id="scene">
         <div class="warehouse" id="warehouse">
           <div class="floor"></div>
-          <div class="floor-line horizontal" aria-hidden="true"></div>
-          <div class="floor-line vertical" aria-hidden="true"></div>
 
           <div class="rack rack-front" aria-label="Rack avant">
             <span class="post-back left"></span>
