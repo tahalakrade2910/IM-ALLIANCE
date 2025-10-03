@@ -128,9 +128,6 @@ if (!isset($_SESSION['logged_in'])) {
 <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
 <main class="visualisation-3d" role="main">
   <nav class="return-buttons" aria-label="Navigation retour">
-    <a href="dashboard.php#consulter" class="btn-retour">
-      ← Retour à la liste des stocks
-    </a>
     <a href="consulter_stock.php" class="btn-retour">
       ← Retour à la gestion des stocks
     </a>
