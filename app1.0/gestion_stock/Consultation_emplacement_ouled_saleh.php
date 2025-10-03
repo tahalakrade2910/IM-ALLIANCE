@@ -73,6 +73,22 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       transition: opacity 0.1s ease;
       z-index: 50;
     }
+
+    .spot-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font: 700 12px/1.1 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: #f8fafcee;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+      transform: translate(-50%, -100%);
+      white-space: nowrap;
+      pointer-events: none;
+    }
   </style>
   <script type="importmap">
     {
@@ -96,6 +112,7 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf3f6fb);
@@ -107,6 +124,15 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
     renderer.setPixelRatio(devicePixelRatio);
     renderer.setSize(innerWidth, innerHeight);
     document.getElementById('app').appendChild(renderer.domElement);
+
+    const labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(innerWidth, innerHeight);
+    labelRenderer.domElement.style.position = 'fixed';
+    labelRenderer.domElement.style.top = '0';
+    labelRenderer.domElement.style.left = '0';
+    labelRenderer.domElement.style.pointerEvents = 'none';
+    labelRenderer.domElement.style.zIndex = '35';
+    document.body.appendChild(labelRenderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1.3, 0);
@@ -213,6 +239,16 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       mesh.material.depthWrite = false;
       mesh.userData.label = label;
       spotMeshes.push(mesh);
+
+      if (label) {
+        const labelElement = document.createElement('span');
+        labelElement.className = 'spot-label';
+        labelElement.textContent = label;
+        const labelObject = new CSS2DObject(labelElement);
+        labelObject.position.set(0, size.y / 2 + 0.12, 0);
+        mesh.add(labelObject);
+      }
+
       return mesh;
     }
 
@@ -296,6 +332,7 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
+      labelRenderer.setSize(innerWidth, innerHeight);
     }
     window.addEventListener('resize', onResize);
 
@@ -338,6 +375,7 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
     (function animate(){
       requestAnimationFrame(animate);
       renderer.render(scene, camera);
+      labelRenderer.render(scene, camera);
     })();
   </script>
 </body>
