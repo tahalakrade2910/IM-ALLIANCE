@@ -4,6 +4,17 @@ if (!isset($_SESSION['logged_in'])) {
     header('Location: ../login.php');
     exit();
 }
+
+$lieuxDisponibles = ['Rabat', 'Ouled Saleh'];
+$currentLieu = $_GET['lieu'] ?? $lieuxDisponibles[0];
+if (!in_array($currentLieu, $lieuxDisponibles, true)) {
+    $currentLieu = $lieuxDisponibles[0];
+}
+
+$dashboardUrl = 'dashboard.php?' . http_build_query([
+    'lieu' => $currentLieu,
+    'section' => 'consulter',
+]);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -128,7 +139,7 @@ if (!isset($_SESSION['logged_in'])) {
 <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
 <main class="visualisation-3d" role="main">
   <nav class="return-buttons" aria-label="Navigation retour">
-    <a href="consulter_stock.php" class="btn-retour">
+    <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES) ?>" class="btn-retour">
       ← Retour à la gestion des stocks
     </a>
   </nav>

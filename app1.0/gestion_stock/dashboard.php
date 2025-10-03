@@ -885,7 +885,7 @@ a.back-home:hover {
   </script>
 
 <div class="menu-actions" style="margin:20px 0; text-align:center;">
-    <a href="consultation_emplacement.php"
+    <a href="Consultation_emplacement.php?lieu=<?= urlencode($currentLieu) ?>&section=consulter"
        style="background:#007bff; color:white; padding:10px 20px;
               border-radius:8px; text-decoration:none; font-weight:bold;">
         🗂️ Voir les emplacements en 3D
