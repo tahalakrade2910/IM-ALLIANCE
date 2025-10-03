@@ -58,6 +58,21 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       outline: 2px solid #1d4ed8;
       outline-offset: 2px;
     }
+    .spot-tooltip {
+      position: fixed;
+      pointer-events: none;
+      padding: 6px 10px;
+      font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: #f1f5f9ee;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+      opacity: 0;
+      transform: translate(-50%, -120%);
+      transition: opacity 0.1s ease;
+      z-index: 50;
+    }
   </style>
   <script type="importmap">
     {
@@ -186,9 +201,46 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       return rack;
     }
 
+    const spotMeshes = [];
+
+    function createSpot({ size, position, label }) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(size.x, size.y, size.z),
+        new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0 })
+      );
+      mesh.position.set(position.x, position.y, position.z);
+      mesh.material.colorWrite = false;
+      mesh.material.depthWrite = false;
+      mesh.userData.label = label;
+      spotMeshes.push(mesh);
+      return mesh;
+    }
+
     const rack = createRack({});
     rack.position.set(-roomWidth/2 + 1.5, 0, -roomDepth/2 + 0.5);
     scene.add(rack);
+
+    const rackSpotWidth = 1.8 / 3;
+    const rackSpotDepth = 0.6;
+    const rackLevels = [
+      { label: 'C', y: 2.05 },
+      { label: 'D', y: 1.25 },
+      { label: 'E', y: 0.55 },
+    ];
+
+    const rackSpots = new THREE.Group();
+    rackLevels.forEach(({ label, y }) => {
+      for (let i = 0; i < 3; i++) {
+        const spot = createSpot({
+          size: new THREE.Vector3(rackSpotWidth * 0.95, 0.4, rackSpotDepth * 0.95),
+          position: new THREE.Vector3(-1.8/2 + rackSpotWidth * (i + 0.5), y, 0),
+          label: `${label}${i + 1}`,
+        });
+        rackSpots.add(spot);
+      }
+    });
+
+    rack.add(rackSpots);
 
     function createTable({ width=1.8, depth=0.8, height=0.9 }={}) {
       const table = new THREE.Group();
@@ -217,12 +269,71 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
     table.rotation.y = Math.PI/2;
     scene.add(table);
 
+    const tableSpotGroup = new THREE.Group();
+    const tableWidth = 1.8;
+    const tableDepth = 0.8;
+    const tableHeight = 0.9;
+
+    for (let i = 0; i < 3; i++) {
+      const topSpot = createSpot({
+        size: new THREE.Vector3(tableDepth * 0.9, 0.04, tableWidth / 3 * 0.9),
+        position: new THREE.Vector3(0, tableHeight + 0.05, -tableWidth / 2 + (i + 0.5) * (tableWidth / 3)),
+        label: `A${i + 1}`,
+      });
+      tableSpotGroup.add(topSpot);
+
+      const bottomSpot = createSpot({
+        size: new THREE.Vector3(tableDepth * 0.9, 0.5, tableWidth / 3 * 0.9),
+        position: new THREE.Vector3(0, 0.25, -tableWidth / 2 + (i + 0.5) * (tableWidth / 3)),
+        label: `B${i + 1}`,
+      });
+      tableSpotGroup.add(bottomSpot);
+    }
+
+    table.add(tableSpotGroup);
+
     function onResize() {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(innerWidth, innerHeight);
     }
     window.addEventListener('resize', onResize);
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'spot-tooltip';
+    tooltip.setAttribute('role', 'status');
+    document.body.appendChild(tooltip);
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+
+    function updatePointer(event) {
+      pointer.x = (event.clientX / innerWidth) * 2 - 1;
+      pointer.y = -(event.clientY / innerHeight) * 2 + 1;
+    }
+
+    function handlePointerMove(event) {
+      updatePointer(event);
+      raycaster.setFromCamera(pointer, camera);
+      const intersects = raycaster.intersectObjects(spotMeshes, false);
+
+      if (intersects.length > 0) {
+        const { label } = intersects[0].object.userData;
+        tooltip.textContent = label;
+        tooltip.style.left = `${event.clientX}px`;
+        tooltip.style.top = `${event.clientY}px`;
+        tooltip.style.opacity = '1';
+      } else {
+        tooltip.style.opacity = '0';
+      }
+    }
+
+    function handlePointerLeave() {
+      tooltip.style.opacity = '0';
+    }
+
+    renderer.domElement.addEventListener('pointermove', handlePointerMove);
+    renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
 
     (function animate(){
       requestAnimationFrame(animate);
