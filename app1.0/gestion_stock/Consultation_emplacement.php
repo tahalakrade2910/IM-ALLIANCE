@@ -131,9 +131,6 @@ if (!isset($_SESSION['logged_in'])) {
     <a href="dashboard.php#consulter" class="btn-retour">
       ← Retour à la liste des stocks
     </a>
-    <a href="consulter_stock.php" class="btn-retour">
-      ← Retour à la gestion des stocks
-    </a>
   </nav>
   <div id="app" aria-label="Visualisation 3D de l'entrepôt"></div>
   <div class="hint"><b>Contrôles :</b> glisser pour orbiter • molette pour zoomer • clic droit pour déplacer</div>
