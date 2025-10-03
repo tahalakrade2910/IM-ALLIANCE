@@ -504,10 +504,12 @@ main {
     align-items: center;
     gap: 0.75rem;
     padding: 1rem;
+    padding-bottom: 3.25rem;
     border-radius: 16px;
     border: 1px solid rgba(30, 64, 175, 0.12);
     background-color: #ffffff;
     cursor: pointer;
+    overflow: hidden;
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
@@ -522,10 +524,28 @@ main {
 }
 
 .designation-card span {
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    color: #ffffff;
     font-weight: 600;
-    color: var(--primary-dark);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    text-align: center;
+    opacity: 1;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.designation-card:hover span,
+.designation-card:focus-visible span,
+.designation-card.is-active span {
+    background: var(--primary-color);
+    color: #ffffff;
+    transform: translateY(-2px);
 }
 
 .designation-card:hover,
