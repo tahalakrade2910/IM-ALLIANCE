@@ -314,8 +314,10 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
       tableWidth / 2 - (index + 0.5) * (tableWidth / 3)
     );
 
+    const labelOrder = [3, 2, 1];
+
     slotOffsets.forEach((offset, index) => {
-      const labelIndex = index + 1;
+      const labelIndex = labelOrder[index];
 
       const topSpot = createSpot({
         size: new THREE.Vector3(tableWidth / 3 * 0.9, 0.04, tableDepth * 0.9),
