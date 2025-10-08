@@ -503,7 +503,7 @@ function toSearchIndex(array $values): string
             <?php else: ?>
                 <div class="software-browser">
                     <div class="browser-step">
-                        <h3>1. Choisissez une catégorie</h3>
+                        <h3><span class="step-number">1</span> Choisissez une catégorie</h3>
                         <div class="equipment-choice" role="group" aria-label="Choix de la catégorie du DM">
                             <?php foreach ($equipmentOptions as $equipment => $designations): ?>
                                 <button type="button" class="equipment-button" data-equipment-choice="<?= e($equipment); ?>">
@@ -514,7 +514,7 @@ function toSearchIndex(array $values): string
                     </div>
 
                     <div class="browser-step">
-                        <h3>2. Sélectionnez un DM</h3>
+                        <h3><span class="step-number">2</span> Sélectionnez un DM</h3>
                         <p class="muted" id="equipment-instructions">Choisissez une catégorie pour afficher les DM associés.</p>
                         <div class="designation-grid" id="designation-grid">
                             <?php foreach ($equipmentOptions as $equipment => $designations): ?>
@@ -530,7 +530,7 @@ function toSearchIndex(array $values): string
                     </div>
 
                     <div class="browser-step">
-                        <h3>3. Logiciels disponibles</h3>
+                        <h3><span class="step-number">3</span> Logiciels disponibles</h3>
                         <p class="muted" id="designation-instructions">Sélectionnez un DM pour afficher les logiciels correspondants.</p>
                         <div class="backup-filters hidden" id="software-filters">
                             <div class="filter-field">
