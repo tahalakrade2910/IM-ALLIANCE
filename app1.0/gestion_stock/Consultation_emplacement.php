@@ -11,7 +11,7 @@ if (!in_array($currentLieu, $lieuxDisponibles, true)) {
     $currentLieu = $lieuxDisponibles[0];
 }
 
-$dashboardUrl = 'dashboard.php?' . http_build_query([
+$gestionStockUrl = 'dashboard.php?' . http_build_query([
     'lieu' => $currentLieu,
     'section' => 'consulter',
 ]);
@@ -139,7 +139,7 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
 <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
 <main class="visualisation-3d" role="main">
   <nav class="return-buttons" aria-label="Navigation retour">
-    <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES) ?>" class="btn-retour">
+    <a href="<?= htmlspecialchars($gestionStockUrl, ENT_QUOTES) ?>" class="btn-retour">
       ← Retour à la gestion des stocks
     </a>
   </nav>

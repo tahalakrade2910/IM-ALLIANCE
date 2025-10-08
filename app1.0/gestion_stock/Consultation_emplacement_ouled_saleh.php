@@ -6,7 +6,7 @@ if (!isset($_SESSION['logged_in'])) {
 }
 
 $currentLieu = 'Ouled Saleh';
-$dashboardUrl = 'dashboard.php?' . http_build_query([
+$gestionStockUrl = 'dashboard.php?' . http_build_query([
     'lieu' => $currentLieu,
     'section' => $_GET['section'] ?? 'consulter',
 ]);
@@ -102,7 +102,7 @@ $dashboardUrl = 'dashboard.php?' . http_build_query([
 <body>
   <?php $baseUrl = '..'; require __DIR__ . '/../partials/top_nav.php'; ?>
   <nav class="return-buttons" aria-label="Navigation retour">
-    <a href="<?= htmlspecialchars($dashboardUrl, ENT_QUOTES) ?>" class="btn-retour">
+    <a href="<?= htmlspecialchars($gestionStockUrl, ENT_QUOTES) ?>" class="btn-retour">
       ← Retour à la gestion des stocks
     </a>
   </nav>
