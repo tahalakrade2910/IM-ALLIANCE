@@ -454,8 +454,8 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
       for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
         const slotNumber = columnIndex + 1;
-        const x = width / 2 - (columnIndex + 0.5) * columnWidth;
-        const spotLabel = rackCode ? `${rackCode}-${levelLabel}${slotNumber}` : `${levelLabel}${slotNumber}`;
+        const x = -width / 2 + (columnIndex + 0.5) * columnWidth;
+        const spotLabel = rackCode ? `${rackCode}${slotNumber}` : `${levelLabel}${slotNumber}`;
 
         const spot = createSpot({
           size: new THREE.Vector3(columnWidth * 0.95, 0.4, depth * 0.95),
