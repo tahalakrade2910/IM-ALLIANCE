@@ -493,15 +493,16 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
     const tableSpots = new THREE.Group();
     const columns = 3;
-    const rows = 2;
     const columnWidth = width / columns;
-    const rowDepth = depth / rows;
-    const rowLabels = ['U', 'D'];
     const spotHeight = 0.2;
+    const rowConfigs = [
+      { label: 'U', zIndex: 0, y: height + spotHeight / 2 },
+      { label: 'D', zIndex: 1, y: height / 2 },
+    ];
+    const rowDepth = depth / rowConfigs.length;
 
-    for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
-      const rowLabel = rowLabels[rowIndex] ?? '';
-      const z = -depth / 2 + (rowIndex + 0.5) * rowDepth;
+    rowConfigs.forEach(({ label: rowLabel, zIndex, y }) => {
+      const z = -depth / 2 + (zIndex + 0.5) * rowDepth;
 
       for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
         const x = -width / 2 + (columnIndex + 0.5) * columnWidth;
@@ -509,13 +510,13 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
         const spot = createSpot({
           size: new THREE.Vector3(columnWidth * 0.9, spotHeight, rowDepth * 0.9),
-          position: new THREE.Vector3(x, height + spotHeight / 2, z),
+          position: new THREE.Vector3(x, y, z),
           label,
         });
 
         tableSpots.add(spot);
       }
-    }
+    });
 
     tableGroup.add(tableSpots);
 
