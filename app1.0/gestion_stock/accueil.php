@@ -40,5 +40,27 @@ if (!isset($_SESSION['logged_in'])) {
 <footer class="page-footer">
     <p>Optimisez la gestion de vos pièces détachées avec les outils de suivi du stock.</p>
 </footer>
+<script>
+  (function () {
+    const consulterLink = document.querySelector('.section-toggle a[href="dashboard.php?section=consulter"]');
+    const pageLogo = document.querySelector('.page-logo');
+    if (!consulterLink || !pageLogo) {
+      return;
+    }
+
+    let hasZoomed = false;
+    consulterLink.addEventListener('click', function (event) {
+      if (hasZoomed) {
+        return;
+      }
+      hasZoomed = true;
+      event.preventDefault();
+      pageLogo.classList.add('is-zoomed');
+      setTimeout(() => {
+        window.location.href = this.href;
+      }, 240);
+    });
+  })();
+</script>
 </body>
 </html>
