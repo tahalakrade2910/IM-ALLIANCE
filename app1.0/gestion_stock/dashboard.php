@@ -255,6 +255,15 @@ a.action-btn.secondary:hover {
   box-shadow: 0 6px 15px rgba(29, 78, 216, 0.25);
 }
 
+.action-btn.toggle-edit.active {
+  background-color: #15803d;
+  box-shadow: 0 6px 15px rgba(21, 128, 61, 0.25);
+}
+
+.action-btn.toggle-edit.active:hover {
+  background-color: #166534;
+}
+
 .add-section-actions {
   display: flex;
   justify-content: flex-end;
@@ -433,20 +442,23 @@ a.back-home:hover {
 
     <div id="section-consulter" class="hidden">
       <div class="search-actions">
-      <div class="search-input-wrapper">
-        <input id="searchInput" placeholder="🔍 Rechercher..." />
-        <button type="button" class="search-clear-btn" onclick="resetSearch()" aria-label="Réinitialiser la recherche">✖</button>
+        <div class="search-input-wrapper">
+          <input id="searchInput" placeholder="🔍 Rechercher..." />
+          <button type="button" class="search-clear-btn" onclick="resetSearch()" aria-label="Réinitialiser la recherche">✖</button>
+        </div>
+        <?php if ($isAdmin): ?>
+          <button type="button" class="action-btn toggle-edit" id="toggle-edit-mode" aria-pressed="false">🛠️ Modifier l'emplacement</button>
+        <?php endif; ?>
+        <button type="button" class="action-btn" onclick="showSection('ajouter')">➕ Ajouter</button>
+        <button type="button" class="action-btn secondary" onclick="exportToCSV()">📗 CSV</button>
+        <button type="button" class="action-btn secondary" onclick="exportToPDF()">📄 PDF</button>
       </div>
-      <button type="button" class="action-btn" onclick="showSection('ajouter')">➕ Ajouter</button>
-      <button type="button" class="action-btn secondary" onclick="exportToCSV()">📗 CSV</button>
-      <button type="button" class="action-btn secondary" onclick="exportToPDF()">📄 PDF</button>
-    </div>
 
 
       <table id="stockTableContainer" class="hidden">
         <thead><tr>
           <th>Groupe</th><th>Famille</th><th>Réf</th><th>Désignation</th>
-          <th>Qté</th><th>Emplacement</th><th>Lieu</th><th>État</th><?php if ($isAdmin): ?><th>Actions</th><?php endif; ?>
+          <th>Qté</th><th>Emplacement</th><th>Lieu</th><th>État</th><?php if ($isAdmin): ?><th id="actions-header" class="hidden">Actions</th><?php endif; ?>
         </tr></thead>
         <tbody id="stockTable"></tbody>
       </table>
@@ -454,201 +466,50 @@ a.back-home:hover {
   </div>
 <div id="editModal" class="modal hidden">
   <div class="modal-content">
-    <h3>Modifier le stock</h3>
+    <h3>Modifier l'emplacement</h3>
+    <p class="modal-description">Choisissez le nouvel emplacement pour l'article sélectionné.</p>
+    <div class="modal-stock-summary" id="edit-stock-summary"></div>
     <form id="editForm" method="POST" action="edit_stock.php">
       <input type="hidden" name="id" id="edit-id">
       <input type="hidden" name="current_lieu" id="edit-current-lieu" value="<?= htmlspecialchars($currentLieu) ?>">
-
-      <label>Groupe :
-        <select name="groupe" id="edit-groupe" required>
-          <option value="">-- Choisir un groupe --</option>
-          <option value="Reprographe">Reprographe</option>
-          <option value="Numériseur">Numériseur</option>
-          <option value="Capteur plan">Capteur plan</option>
-        </select>
-      </label>
-
-      <label>Famille :
-        <select name="famille" id="edit-famille" required>
-          <option value="">-- Choisir une famille --</option>
-        </select>
-      </label>
-
-      <label>Référence :
-        <select name="reference" id="edit-reference" onchange="handleEditReferenceChange()" required>
-          <option value="">-- Choisir ou ajouter --</option>
-          <?php foreach ($references as $ref => $des) echo "<option value=\"$ref\">$ref</option>"; ?>
-          <option value="autre">Autre (ajouter manuellement)</option>
-        </select>
-      </label>
-
-      <div id="edit-other-ref-container" class="hidden">
-        <label>Nouvelle Référence :
-          <input type="text" name="new_reference" id="edit-new-reference" placeholder="Ex: REF9999">
-        </label>
-      </div>
-
-      <label>Désignation :
-        <input type="text" name="designation" id="edit-designation" required readonly>
-      </label>
-
-      <div id="edit-other-des-container" class="hidden">
-        <label>Nouvelle Désignation :
-          <input type="text" name="new_designation" id="edit-new-designation" placeholder="Ex: Carte XYZ">
-        </label>
-      </div>
-
-      <label>Quantité :
-        <input type="number" name="quantite" id="edit-quantite" required>
-      </label>
-
-      <label>Emplacement :
+      <label for="edit-emplacement">Nouvel emplacement :
         <input type="text" name="emplacement" id="edit-emplacement" required>
       </label>
-
-      <label>Lieu :
-        <select name="lieu" id="edit-lieu" required>
-          <?php foreach (array_keys($lieuxDisponibles) as $lieuOption): ?>
-            <option value="<?= htmlspecialchars($lieuOption) ?>"><?= htmlspecialchars($lieuOption) ?></option>
-          <?php endforeach; ?>
-        </select>
-      </label>
-
-      <label>État :
-        <select name="etat" id="edit-etat" required>
-          <option>OK</option>
-          <option>NO</option>
-          <option>à vérifier</option>
-          <option>Pièce de rechange</option>
-        </select>
-      </label>
-
-      <button type="submit">✅ Enregistrer</button>
-      <button type="button" onclick="closeModal()">❌ Annuler</button>
+      <div class="modal-actions">
+        <button type="submit">✅ Enregistrer</button>
+        <button type="button" onclick="closeModal()">❌ Annuler</button>
+      </div>
     </form>
   </div>
 </div>
 
 
 <style>
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; }
-.modal-content {
-  background: #fff; padding: 20px; border-radius: 10px; width: 600px;
-}
-.modal-content label {
-  display: block;
-  margin-bottom: 10px;
-}
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 1rem; }
+.modal-content { background: #fff; padding: 24px; border-radius: 12px; width: min(420px, calc(100% - 2rem)); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25); }
+.modal-content label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #1f2937; }
+.modal-content input[type="text"] { width: 100%; padding: 0.7rem; border-radius: 8px; border: 1px solid #cbd5f5; font-size: 1rem; }
+.modal-content input[type="text"]:focus { outline: 2px solid var(--primary-color, #1d4ed8); outline-offset: 2px; }
 .modal.show { display: flex; }
-
+.modal-description { margin: 0 0 0.5rem; color: #334155; font-size: 0.95rem; }
+.modal-stock-summary { margin: 0 0 1rem; padding: 0.75rem 1rem; border-radius: 10px; background: #eef2ff; color: #1e293b; font-weight: 600; line-height: 1.4; box-shadow: inset 0 0 0 1px rgba(79, 70, 229, 0.1); }
+.modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+.modal-actions button { flex: 1; border: none; border-radius: 30px; padding: 0.75rem 1rem; font-size: 1rem; cursor: pointer; transition: background-color 0.3s ease, box-shadow 0.3s ease; }
+.modal-actions button[type="submit"] { background-color: var(--primary-color, #1d4ed8); color: #fff; }
+.modal-actions button[type="submit"]:hover { background-color: var(--primary-dark, #1e3a8a); box-shadow: 0 10px 25px rgba(29, 78, 216, 0.25); }
+.modal-actions button[type="button"] { background-color: #e2e8f0; color: #0f172a; }
+.modal-actions button[type="button"]:hover { background-color: #cbd5e1; }
 </style>
-<script>
-  const currentLieu = <?= json_encode($currentLieu) ?>;
-  document.addEventListener("DOMContentLoaded", function () {
-    const famillesParGroupe = {
-      "Reprographe": ["DV5700", "DV5950", "DV6950"],
-      "Numériseur": ["CR CLASSIC", "CRVITA FLEX", "CR VITA"],
-      "Capteur plan": ["LUX", "FOCUS", "DRX"]
-    };
-
-    const references = <?= json_encode($references) ?>;
-    const editCurrentLieuInput = document.getElementById('edit-current-lieu');
-    if (editCurrentLieuInput) {
-      editCurrentLieuInput.value = currentLieu;
-    }
-
-    document.getElementById("edit-groupe").addEventListener("change", function () {
-      const groupe = this.value;
-      const familles = famillesParGroupe[groupe] || [];
-      const familleSelect = document.getElementById("edit-famille");
-
-      familleSelect.innerHTML = '<option value="">-- Choisir une famille --</option>';
-      familles.forEach(f => {
-        familleSelect.innerHTML += `<option value="${f}">${f}</option>`;
-      });
-    });
-
-    function handleEditReferenceChange() {
-      const select = document.getElementById("edit-reference");
-      const ref = select.value;
-      const designationField = document.getElementById("edit-designation");
-      const otherRef = document.getElementById("edit-other-ref-container");
-      const otherDes = document.getElementById("edit-other-des-container");
-
-      if (ref === "autre") {
-        designationField.value = "";
-        designationField.setAttribute("readonly", true);
-        otherRef.classList.remove("hidden");
-        otherDes.classList.remove("hidden");
-      } else if (ref === "") {
-        designationField.value = "";
-        otherRef.classList.add("hidden");
-        otherDes.classList.add("hidden");
-      } else {
-        designationField.value = references[ref] || "";
-        otherRef.classList.add("hidden");
-        otherDes.classList.add("hidden");
-      }
-    }
-
-    window.handleEditReferenceChange = handleEditReferenceChange;
-
-    // Rendre cette fonction globale pour qu'elle soit accessible en dehors du bloc DOMContentLoaded
-    window.openEditModal = function (stock) {
-      document.getElementById('edit-id').value = stock.id;
-      document.getElementById('edit-groupe').value = stock.groupe;
-
-      const familles = famillesParGroupe[stock.groupe] || [];
-      const familleSelect = document.getElementById('edit-famille');
-      familleSelect.innerHTML = '<option value="">-- Choisir une famille --</option>';
-      familles.forEach(f => {
-        const selected = f === stock.famille ? "selected" : "";
-        familleSelect.innerHTML += `<option ${selected}>${f}</option>`;
-      });
-
-      document.getElementById('edit-reference').value = references[stock.reference] ? stock.reference : "autre";
-      handleEditReferenceChange();
-      if (!references[stock.reference]) {
-        document.getElementById('edit-new-reference').value = stock.reference;
-        document.getElementById('edit-new-designation').value = stock.designation;
-      } else {
-        document.getElementById('edit-new-reference').value = '';
-        document.getElementById('edit-new-designation').value = '';
-      }
-
-      document.getElementById('edit-designation').value = references[stock.reference] || stock.designation;
-      document.getElementById('edit-quantite').value = stock.quantite;
-      document.getElementById('edit-emplacement').value = stock.emplacement;
-      const editLieuSelect = document.getElementById('edit-lieu');
-      if (editLieuSelect) {
-        const availableValues = Array.from(editLieuSelect.options).map(opt => opt.value);
-        editLieuSelect.value = stock.lieu && availableValues.includes(stock.lieu)
-          ? stock.lieu
-          : currentLieu;
-      }
-      const editCurrentLieuInput = document.getElementById('edit-current-lieu');
-      if (editCurrentLieuInput) {
-        editCurrentLieuInput.value = currentLieu;
-      }
-      document.getElementById('edit-etat').value = stock.etat;
-
-      const modal = document.getElementById('editModal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('show');
-      }
-    };
-
-    // Événement change pour le champ référence
-    document.getElementById("edit-reference").addEventListener("change", handleEditReferenceChange);
-  });
-</script>
 
 
   <script>
+    const currentLieu = <?= json_encode($currentLieu) ?>;
     const references = <?= json_encode($references) ?>;
     const allStocks = <?= json_encode($stocks) ?>;
     const isAdmin = <?= json_encode($isAdmin) ?>;
+
+    let adminEditMode = false;
+    let lastRenderedStocks = Array.from(allStocks);
 
     function updateDesignation() {
       const referenceSelect = document.getElementById("reference");
@@ -680,6 +541,45 @@ a.back-home:hover {
       });
     }
 
+    const editCurrentLieuInput = document.getElementById("edit-current-lieu");
+    if (editCurrentLieuInput) {
+      editCurrentLieuInput.value = currentLieu;
+    }
+
+    function updateActionsHeader(show) {
+      const header = document.getElementById("actions-header");
+      if (header) {
+        header.classList.toggle("hidden", !show);
+      }
+    }
+
+    function updateAdminModeUI() {
+      const toggleButton = document.getElementById("toggle-edit-mode");
+      if (toggleButton) {
+        toggleButton.classList.toggle("active", adminEditMode);
+        toggleButton.setAttribute("aria-pressed", adminEditMode ? "true" : "false");
+        toggleButton.textContent = adminEditMode
+          ? "🔒 Terminer la modification"
+          : "🛠️ Modifier l'emplacement";
+      }
+      document.body.classList.toggle("admin-edit-active", adminEditMode);
+    }
+
+    function setAdminEditMode(enabled) {
+      if (!isAdmin) {
+        return;
+      }
+      const shouldEnable = Boolean(enabled);
+      if (adminEditMode === shouldEnable) {
+        updateAdminModeUI();
+        updateActionsHeader(isAdmin && adminEditMode);
+        return;
+      }
+      adminEditMode = shouldEnable;
+      updateAdminModeUI();
+      renderTable(lastRenderedStocks);
+    }
+
     function showSection(section) {
       const ajouterSection = document.getElementById("section-ajouter");
       const consulterSection = document.getElementById("section-consulter");
@@ -693,6 +593,8 @@ a.back-home:hover {
       }
       if (section === "consulter") {
         resetSearch();
+      } else if (adminEditMode) {
+        setAdminEditMode(false);
       }
     }
 
@@ -702,24 +604,28 @@ a.back-home:hover {
       if (!tbody || !container) {
         return;
       }
+
+      const records = Array.isArray(data) ? data : [];
+      lastRenderedStocks = records;
+
+      const showActions = isAdmin && adminEditMode;
+      updateActionsHeader(showActions);
+
       tbody.innerHTML = "";
-      const columnCount = isAdmin ? 9 : 8;
-      if (!data.length) {
+      const columnCount = showActions ? 9 : 8;
+      if (!records.length) {
         tbody.innerHTML = `<tr><td colspan="${columnCount}">Aucun article trouvé pour ${currentLieu}.</td></tr>`;
       } else {
-        data.forEach(s => {
+        const rows = records.map(s => {
           const encodedStock = encodeURIComponent(JSON.stringify(s));
           const lieu = s.lieu ?? currentLieu;
-          const actionsHtml = isAdmin ? `
-              <td>
-                <button type="button" class="edit-stock-btn" data-stock="${encodedStock}">
-                  <i class="fas fa-pen fa-lg" style="color:#007bff;"></i>
-                </button>
-                <button type="button" onclick="if(confirm('Supprimer ?')) location='delete_stock.php?id=${encodeURIComponent(s.id)}&lieu=${encodeURIComponent(currentLieu)}'">
-                  <i class="fas fa-trash fa-lg" style="color:#dc3545;"></i>
+          const actionsHtml = showActions ? `
+              <td class="actions-column">
+                <button type="button" class="edit-stock-btn" data-stock="${encodedStock}" aria-label="Modifier l'emplacement">
+                  <i class="fas fa-location-dot fa-lg" style="color:#2563eb;"></i>
                 </button>
               </td>` : '';
-          tbody.innerHTML += `
+          return `
             <tr>
               <td>${s.groupe ?? ""}</td><td>${s.famille ?? ""}</td><td>${s.reference ?? ""}</td>
               <td>${s.designation ?? ""}</td><td>${s.quantite ?? ""}</td>
@@ -727,9 +633,13 @@ a.back-home:hover {
               ${actionsHtml}
             </tr>`;
         });
+        tbody.innerHTML = rows.join("");
       }
+
       container.classList.remove("hidden");
-      attachActionHandlers();
+      if (showActions) {
+        attachActionHandlers();
+      }
     }
 
     function resetSearch() {
@@ -839,6 +749,57 @@ a.back-home:hover {
       });
     }
 
+    function openEditModal(stock) {
+      if (!isAdmin || !adminEditMode) {
+        return;
+      }
+      const idInput = document.getElementById('edit-id');
+      if (idInput) {
+        idInput.value = stock.id;
+      }
+      const emplacementInput = document.getElementById('edit-emplacement');
+      if (emplacementInput) {
+        emplacementInput.value = stock.emplacement ?? "";
+        emplacementInput.focus({ preventScroll: true });
+        emplacementInput.select();
+      }
+      const lieuInput = document.getElementById('edit-current-lieu');
+      if (lieuInput) {
+        lieuInput.value = currentLieu;
+      }
+      const summary = document.getElementById('edit-stock-summary');
+      if (summary) {
+        const details = [];
+        if (stock.reference) {
+          details.push(`Réf : ${stock.reference}`);
+        }
+        if (stock.designation) {
+          details.push(stock.designation);
+        }
+        if (stock.emplacement) {
+          details.push(`Emplacement actuel : ${stock.emplacement}`);
+        }
+        const lieu = stock.lieu ?? currentLieu;
+        if (lieu) {
+          details.push(`Lieu : ${lieu}`);
+        }
+        summary.textContent = details.join(' • ');
+      }
+      const modal = document.getElementById('editModal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('show');
+      }
+    }
+    window.openEditModal = openEditModal;
+
+    const toggleEditButton = document.getElementById('toggle-edit-mode');
+    if (toggleEditButton) {
+      toggleEditButton.addEventListener('click', () => {
+        setAdminEditMode(!adminEditMode);
+      });
+    }
+
     window.addEventListener("DOMContentLoaded", () => {
       const defaultSection = "<?= $defaultSection ?>";
       if (defaultSection) {
@@ -846,6 +807,7 @@ a.back-home:hover {
       } else {
         showSection("consulter");
       }
+      updateAdminModeUI();
     });
 
     document.querySelectorAll(".action-btn").forEach(btn => {
@@ -887,6 +849,7 @@ a.back-home:hover {
       }
     }
   </script>
+
 
 <div class="menu-actions" style="margin:20px 0; text-align:center;">
     <a href="<?= htmlspecialchars($consultationPage, ENT_QUOTES) ?>?lieu=<?= urlencode($currentLieu) ?>&section=consulter"
