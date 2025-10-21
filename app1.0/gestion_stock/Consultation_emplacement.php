@@ -11,6 +11,8 @@ if (!in_array($currentLieu, $lieuxDisponibles, true)) {
     $currentLieu = $lieuxDisponibles[0];
 }
 
+$isAdmin = (($_SESSION['role'] ?? '') === 'admin');
+
 $gestionStockUrl = 'dashboard.php?' . http_build_query([
     'lieu' => $currentLieu,
     'section' => 'consulter',
@@ -78,9 +80,10 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
       inset: 0;
     }
 
-    .hint,
-    .testpanel {
+    .hint {
       position: fixed;
+      left: 12px;
+      bottom: 12px;
       padding: 10px 12px;
       font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       color: #0f172a;
@@ -92,19 +95,75 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
       z-index: 20;
     }
 
-    .hint {
-      left: 12px;
-      bottom: 12px;
-    }
-
     .hint b {
       font-weight: 700;
     }
 
-    .testpanel {
-      right: 12px;
-      bottom: 12px;
-      font-size: 12px;
+    .control-panel {
+      position: fixed;
+      top: calc(var(--top-nav-bottom, 96px) + 16px);
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    .control-panel__status {
+      min-width: 240px;
+      padding: 10px 12px;
+      font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffffcc;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      backdrop-filter: blur(3px);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+      transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .control-panel__status.status--success {
+      border-color: #22c55e;
+      background: #dcfce7cc;
+      color: #166534;
+    }
+
+    .control-panel__status.status--error {
+      border-color: #ef4444;
+      background: #fee2e2cc;
+      color: #991b1b;
+    }
+
+    .control-panel__button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font: 600 14px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      color: #fff;
+      box-shadow: 0 10px 25px rgba(37, 99, 235, 0.25);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    .control-panel__button:hover,
+    .control-panel__button:focus-visible {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 32px rgba(37, 99, 235, 0.35);
+    }
+
+    .control-panel__button:focus-visible {
+      outline: 2px solid #1d4ed8;
+      outline-offset: 2px;
+    }
+
+    .control-panel__button[disabled] {
+      cursor: wait;
+      opacity: 0.7;
+      box-shadow: none;
+      transform: none;
     }
 
     .top-nav {
@@ -113,16 +172,26 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
     }
 
     @media (max-width: 640px) {
-      .hint,
-      .testpanel {
+      .hint {
         left: 50%;
         right: auto;
         transform: translateX(-50%);
         margin-bottom: 8px;
       }
 
-      .testpanel {
-        bottom: 56px;
+      .control-panel {
+        top: auto;
+        right: auto;
+        left: 50%;
+        bottom: 72px;
+        transform: translateX(-50%);
+        align-items: center;
+      }
+
+      .control-panel__status {
+        min-width: 0;
+        width: min(320px, calc(100vw - 48px));
+        text-align: center;
       }
     }
   </style>
@@ -144,13 +213,40 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
     </a>
   </nav>
   <div id="app" aria-label="Visualisation 3D de l'entrepôt"></div>
-  <div class="hint"><b>Contrôles :</b> glisser pour orbiter • molette pour zoomer • clic droit pour déplacer</div>
-  <div class="testpanel" id="testpanel" role="status">Initialisation de la scène…</div>
+  <div class="hint"><b>Contrôles :</b> glisser pour orbiter • molette pour zoomer • clic droit pour déplacer<?php if ($isAdmin): ?> • cliquer &amp; glisser un élément pour le repositionner<?php else: ?> • disposition verrouillée (lecture seule)<?php endif; ?></div>
+  <div class="control-panel" id="control-panel">
+    <div class="control-panel__status" id="layout-status" role="status" aria-live="polite">Chargement de la disposition…</div>
+    <?php if ($isAdmin): ?>
+      <button type="button" class="control-panel__button" id="save-layout">💾 Sauvegarder la disposition</button>
+    <?php endif; ?>
+  </div>
 </main>
 
 <script type="module">
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { DragControls } from 'three/addons/controls/DragControls.js';
+
+  const isAdmin = <?= json_encode($isAdmin, JSON_THROW_ON_ERROR) ?>;
+  const locationKey = <?= json_encode($currentLieu, JSON_THROW_ON_ERROR) ?>;
+
+  const statusElement = document.getElementById('layout-status');
+  const saveButton = document.getElementById('save-layout');
+
+  function setStatus(message, type = 'info') {
+    if (!statusElement) {
+      return;
+    }
+
+    statusElement.textContent = message;
+    statusElement.classList.remove('status--success', 'status--error');
+
+    if (type === 'success') {
+      statusElement.classList.add('status--success');
+    } else if (type === 'error') {
+      statusElement.classList.add('status--error');
+    }
+  }
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf3f6fb);
@@ -159,9 +255,10 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   camera.position.set(7, 4.5, 8);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(devicePixelRatio);
+  renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
+  renderer.domElement.style.touchAction = 'none';
   document.getElementById('app').appendChild(renderer.domElement);
 
   const topNav = document.querySelector('.top-nav');
@@ -181,6 +278,8 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 1.3, -2.0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
   controls.update();
 
   const hemi = new THREE.HemisphereLight(0xffffff, 0xbcc7d6, 0.85);
@@ -193,7 +292,7 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   scene.add(dir);
 
   const roomWidth = 6;
-  const roomDepth = 7;
+  const roomDepth = 5.5;
   const wallHeight = 3.5;
   const wallThickness = 0.2;
 
@@ -222,7 +321,7 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   const ORANGE = 0xff6b00;
   const SHELF = 0xf7fafc;
 
-  function createRack({ width = 1.8, depth = 0.6, height = 2.2, levels = 3 } = {}) {
+  function createRack({ width = 1.8, depth = 0.6, height = 2.2, levels = 4 } = {}) {
     const rack = new THREE.Group();
     const uprGeom = new THREE.BoxGeometry(0.08, height, 0.08);
     const uprMat = new THREE.MeshStandardMaterial({ color: BLUE, metalness: 0.2, roughness: 0.6 });
@@ -244,41 +343,57 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
     const beamMat = new THREE.MeshStandardMaterial({ color: ORANGE, metalness: 0.1, roughness: 0.5 });
 
     for (let i = 0; i < levels; i++) {
-      const y = 0.35 + (i * (height - 0.7)) / (levels - 1);
+      const y = 0.25 + (i * (height - 0.5)) / (levels - 1);
 
-      const f = new THREE.Mesh(beamGeomW, beamMat); f.position.set(0, y, depth / 2);
-      const b = new THREE.Mesh(beamGeomW, beamMat); b.position.set(0, y, -depth / 2);
-      const l = new THREE.Mesh(beamGeomD, beamMat); l.position.set(-width / 2, y, 0);
-      const r = new THREE.Mesh(beamGeomD, beamMat); r.position.set(width / 2, y, 0);
+      const front = new THREE.Mesh(beamGeomW, beamMat);
+      front.position.set(0, y, depth / 2);
+      const back = new THREE.Mesh(beamGeomW, beamMat);
+      back.position.set(0, y, -depth / 2);
+      const left = new THREE.Mesh(beamGeomD, beamMat);
+      left.position.set(-width / 2, y, 0);
+      const right = new THREE.Mesh(beamGeomD, beamMat);
+      right.position.set(width / 2, y, 0);
 
-      rack.add(f, b, l, r);
+      rack.add(front, back, left, right);
 
-      const board = new THREE.Mesh(
+      const shelf = new THREE.Mesh(
         new THREE.BoxGeometry(width - 0.08, 0.04, depth - 0.08),
         new THREE.MeshStandardMaterial({ color: SHELF, roughness: 0.95 })
       );
-      board.position.set(0, y - 0.05, 0);
-      board.castShadow = true;
-      board.receiveShadow = true;
-      rack.add(board);
+      shelf.position.set(0, y - 0.05, 0);
+      rack.add(shelf);
     }
 
     return rack;
   }
 
+  function createTable({ width = 1.8, depth = 0.8, height = 0.9 } = {}) {
+    const tableGroup = new THREE.Group();
+    const top = new THREE.Mesh(new THREE.BoxGeometry(width, 0.05, depth), new THREE.MeshStandardMaterial({ color: 0xc2a27a }));
+    top.position.y = height;
+    tableGroup.add(top);
+
+    const legMat = new THREE.MeshStandardMaterial({ color: 0x1e90ff, metalness: 0.3, roughness: 0.6 });
+    const legGeo = new THREE.BoxGeometry(0.07, height - 0.05, 0.07);
+
+    const leg1 = new THREE.Mesh(legGeo, legMat);
+    leg1.position.set(-width / 2 + 0.1, (height - 0.05) / 2, -depth / 2 + 0.1);
+    const leg2 = leg1.clone();
+    leg2.position.x = width / 2 - 0.1;
+    const leg3 = leg1.clone();
+    leg3.position.z = depth / 2 - 0.1;
+    const leg4 = leg2.clone();
+    leg4.position.z = depth / 2 - 0.1;
+
+    tableGroup.add(leg1, leg2, leg3, leg4);
+
+    return tableGroup;
+  }
+
   const rackNorth = createRack();
-  rackNorth.position.set(0, 0, -roomDepth / 2 + 0.3);
-  scene.add(rackNorth);
-
   const rackWest = createRack();
-  rackWest.position.set(-roomWidth / 2 + 0.3, 0, 0);
-  rackWest.rotation.y = Math.PI / 2;
-  scene.add(rackWest);
-
   const rackEast = createRack();
-  rackEast.position.set(roomWidth / 2 - 0.3, 0, 0);
-  rackEast.rotation.y = -Math.PI / 2;
-  scene.add(rackEast);
+  const table = createTable();
 
   const doorGroup = new THREE.Group();
   const door = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.05, 0.9), new THREE.MeshStandardMaterial({ color: 0x884422 }));
@@ -289,78 +404,233 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
   const knob = new THREE.Mesh(new THREE.SphereGeometry(0.05, 24, 16), new THREE.MeshStandardMaterial({ color: 0xffcc00 }));
   knob.position.set(0.1, 1.0, -0.35);
-  knob.castShadow = true;
   doorGroup.add(knob);
 
-  doorGroup.position.set(roomWidth / 2 - 0.1, 0, 1.6);
-  doorGroup.rotation.y = Math.PI;
-  scene.add(doorGroup);
+  scene.add(rackNorth, rackWest, rackEast, table, doorGroup);
 
-  function createTable({ width = 1.8, depth = 0.8, height = 0.9 } = {}) {
-    const table = new THREE.Group();
-    const top = new THREE.Mesh(
-      new THREE.BoxGeometry(width, 0.05, depth),
-      new THREE.MeshStandardMaterial({ color: 0xc2a27a })
-    );
-    top.position.y = height;
-    top.castShadow = true;
-    top.receiveShadow = true;
-    table.add(top);
+  const layoutItems = {
+    rack_north: rackNorth,
+    rack_west: rackWest,
+    rack_east: rackEast,
+    table,
+    door: doorGroup,
+  };
 
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x1e90ff, metalness: 0.3, roughness: 0.6 });
-    const legGeo = new THREE.BoxGeometry(0.07, height - 0.05, 0.07);
+  const defaultLayout = {
+    rack_north: { position: { x: 0, y: 0, z: -roomDepth / 2 + 0.3 }, rotationY: 0 },
+    rack_west: { position: { x: -roomWidth / 2 + 0.3, y: 0, z: 0 }, rotationY: Math.PI / 2 },
+    rack_east: { position: { x: roomWidth / 2 - 0.3, y: 0, z: 0 }, rotationY: -Math.PI / 2 },
+    table: { position: { x: -roomWidth / 2 + 1, y: 0, z: 2 }, rotationY: Math.PI / 2 },
+    door: { position: { x: roomWidth / 2 - 0.1, y: 0, z: 1.6 }, rotationY: Math.PI },
+  };
 
-    const leg1 = new THREE.Mesh(legGeo, legMat);
-    leg1.position.set(-width / 2 + 0.1, (height - 0.05) / 2, -depth / 2 + 0.1);
-    const leg2 = leg1.clone(); leg2.position.x = width / 2 - 0.1;
-    const leg3 = leg1.clone(); leg3.position.z = depth / 2 - 0.1;
-    const leg4 = leg2.clone(); leg4.position.z = depth / 2 - 0.1;
+  const draggableObjects = [];
+  const proxies = new Map();
 
-    [leg1, leg2, leg3, leg4].forEach((leg) => {
-      leg.castShadow = true;
-      leg.receiveShadow = true;
-    });
+  function syncProxyPosition(key) {
+    const proxy = proxies.get(key);
+    const target = layoutItems[key];
+    if (!proxy || !target) {
+      return;
+    }
 
-    table.add(leg1, leg2, leg3, leg4);
-
-    const braceMat = new THREE.MeshStandardMaterial({ color: 0x808080, metalness: 0.4, roughness: 0.6 });
-    const braceW = new THREE.Mesh(new THREE.BoxGeometry(width - 0.2, 0.05, 0.05), braceMat);
-    braceW.position.set(0, 0.25, depth / 2 - 0.05);
-    const braceW2 = braceW.clone(); braceW2.position.z = -depth / 2 + 0.05;
-
-    const braceD = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, depth - 0.2), braceMat);
-    braceD.position.set(-width / 2 + 0.05, 0.25, 0);
-    const braceD2 = braceD.clone(); braceD2.position.x = width / 2 - 0.05;
-
-    table.add(braceW, braceW2, braceD, braceD2);
-
-    return table;
+    proxy.position.set(target.position.x, 0, target.position.z);
   }
 
-  const table = createTable();
-  table.position.set(-roomWidth / 2 + 0.1 + 0.9 / 2, 0, 2.5);
-  table.rotation.y = Math.PI / 2;
-  scene.add(table);
+  function resetToDefault() {
+    for (const [key, config] of Object.entries(defaultLayout)) {
+      const target = layoutItems[key];
+      if (!target) {
+        continue;
+      }
+
+      target.position.set(config.position.x, config.position.y, config.position.z);
+      target.rotation.y = config.rotationY;
+      syncProxyPosition(key);
+    }
+  }
+
+  function addDraggableProxyFor(key, group) {
+    if (!isAdmin) {
+      return null;
+    }
+
+    const box = new THREE.Box3().setFromObject(group);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const geo = new THREE.BoxGeometry(size.x + 0.1, Math.max(0.2, size.y + 0.1), size.z + 0.1);
+    const mat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.0, depthWrite: false });
+    const proxy = new THREE.Mesh(geo, mat);
+    proxy.userData = { key, target: group };
+    scene.add(proxy);
+    proxies.set(key, proxy);
+    draggableObjects.push(proxy);
+    syncProxyPosition(key);
+    return proxy;
+  }
+
+  resetToDefault();
+
+  addDraggableProxyFor('rack_north', rackNorth);
+  addDraggableProxyFor('rack_west', rackWest);
+  addDraggableProxyFor('rack_east', rackEast);
+  addDraggableProxyFor('table', table);
+  addDraggableProxyFor('door', doorGroup);
+
+  if (saveButton && !isAdmin) {
+    saveButton.remove();
+  }
+
+  if (isAdmin && draggableObjects.length > 0) {
+    const dragControls = new DragControls(draggableObjects, camera, renderer.domElement);
+    dragControls.addEventListener('dragstart', () => {
+      controls.enabled = false;
+    });
+
+    dragControls.addEventListener('drag', (event) => {
+      const proxy = event.object;
+      proxy.position.y = 0;
+      const key = proxy.userData?.key;
+      const target = key ? layoutItems[key] : null;
+      if (target) {
+        target.position.set(proxy.position.x, 0, proxy.position.z);
+      }
+    });
+
+    dragControls.addEventListener('dragend', (event) => {
+      controls.enabled = true;
+      const proxy = event.object;
+      proxy.position.y = 0;
+      const key = proxy.userData?.key;
+      const target = key ? layoutItems[key] : null;
+      if (target) {
+        target.position.set(proxy.position.x, 0, proxy.position.z);
+      }
+    });
+  }
+
+  function applyLayout(items) {
+    for (const item of items) {
+      const key = item.item_key ?? item.itemKey;
+      const target = layoutItems[key];
+      if (!target) {
+        continue;
+      }
+
+      const x = Number(item.position_x ?? item.position?.x);
+      const y = Number(item.position_y ?? item.position?.y ?? 0);
+      const z = Number(item.position_z ?? item.position?.z);
+      const rotationY = Number(item.rotation_y ?? item.rotationY ?? target.rotation.y);
+
+      if (!Number.isNaN(x) && !Number.isNaN(y) && !Number.isNaN(z)) {
+        target.position.set(x, y, z);
+      }
+
+      if (!Number.isNaN(rotationY)) {
+        target.rotation.y = rotationY;
+      }
+
+      syncProxyPosition(key);
+    }
+  }
+
+  function roundTo(value, precision = 3) {
+    const factor = 10 ** precision;
+    return Math.round(value * factor) / factor;
+  }
+
+  function collectLayoutPayload() {
+    const items = [];
+    for (const [key, object] of Object.entries(layoutItems)) {
+      items.push({
+        itemKey: key,
+        position: {
+          x: roundTo(object.position.x, 3),
+          y: roundTo(object.position.y, 3),
+          z: roundTo(object.position.z, 3),
+        },
+        rotationY: roundTo(object.rotation.y, 6),
+      });
+    }
+    return items;
+  }
+
+  async function loadLayout() {
+    resetToDefault();
+
+    try {
+      const response = await fetch(`api/get_layout_positions.php?lieu=${encodeURIComponent(locationKey)}`, {
+        credentials: 'same-origin',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Statut de réponse inattendu: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (Array.isArray(data.items) && data.items.length > 0) {
+        applyLayout(data.items);
+        setStatus('Disposition chargée.', 'success');
+      } else {
+        setStatus('Disposition par défaut chargée.', 'info');
+      }
+    } catch (error) {
+      console.error(error);
+      setStatus('Impossible de charger la disposition sauvegardée.', 'error');
+    }
+  }
+
+  loadLayout();
+
+  if (saveButton && isAdmin) {
+    saveButton.addEventListener('click', async () => {
+      setStatus('Sauvegarde en cours…');
+      saveButton.disabled = true;
+
+      try {
+        const response = await fetch('api/save_layout_positions.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            location: locationKey,
+            items: collectLayoutPayload(),
+          }),
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || data.status !== 'success') {
+          throw new Error(data.error ?? 'Erreur lors de la sauvegarde de la disposition.');
+        }
+
+        setStatus('Disposition enregistrée avec succès.', 'success');
+      } catch (error) {
+        console.error(error);
+        setStatus(error.message || "Impossible d'enregistrer la disposition.", 'error');
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+  }
 
   function onResize() {
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
   }
-  window.addEventListener('resize', onResize);
 
-  const testPanel = document.getElementById('testpanel');
+  window.addEventListener('resize', onResize);
 
   function animate() {
     requestAnimationFrame(animate);
+    controls.update();
     renderer.render(scene, camera);
   }
 
   animate();
-
-  if (testPanel) {
-    testPanel.textContent = 'Scène 3D prête pour la consultation des emplacements.';
-  }
 </script>
 </body>
 </html>
