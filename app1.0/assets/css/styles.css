@@ -159,11 +159,6 @@ body {
     width: 220px;
     max-width: 100%;
     height: auto;
-    transition: transform 0.35s ease;
-}
-
-.page-logo.is-zoomed {
-    transform: scale(1.08);
 }
 
 .page-header-content {
