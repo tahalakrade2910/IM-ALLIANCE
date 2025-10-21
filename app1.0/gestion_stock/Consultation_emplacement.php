@@ -491,6 +491,34 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
 
     tableGroup.add(leg1, leg2, leg3, leg4);
 
+    const tableSpots = new THREE.Group();
+    const columns = 3;
+    const rows = 2;
+    const columnWidth = width / columns;
+    const rowDepth = depth / rows;
+    const rowLabels = ['U', 'D'];
+    const spotHeight = 0.2;
+
+    for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
+      const rowLabel = rowLabels[rowIndex] ?? '';
+      const z = -depth / 2 + (rowIndex + 0.5) * rowDepth;
+
+      for (let columnIndex = 0; columnIndex < columns; columnIndex++) {
+        const x = -width / 2 + (columnIndex + 0.5) * columnWidth;
+        const label = rowLabel ? `${rowLabel}${columnIndex + 1}` : `${columnIndex + 1}`;
+
+        const spot = createSpot({
+          size: new THREE.Vector3(columnWidth * 0.9, spotHeight, rowDepth * 0.9),
+          position: new THREE.Vector3(x, height + spotHeight / 2, z),
+          label,
+        });
+
+        tableSpots.add(spot);
+      }
+    }
+
+    tableGroup.add(tableSpots);
+
     return tableGroup;
   }
 
