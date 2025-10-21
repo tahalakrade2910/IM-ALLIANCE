@@ -8,6 +8,8 @@ use App\Database;
 $stockConfig = $config['stock_database'] ?? $config['database'];
 $stockConfig['ensure_backups_table'] = $stockConfig['ensure_backups_table'] ?? false;
 $stockConfig['ensure_device_software_table'] = $stockConfig['ensure_device_software_table'] ?? false;
+$stockConfig['ensure_chat_messages_table'] = $stockConfig['ensure_chat_messages_table'] ?? false;
+$stockConfig['ensure_warehouse_layout_table'] = $stockConfig['ensure_warehouse_layout_table'] ?? true;
 
 try {
     $stockDatabase = new Database($stockConfig);

@@ -9,6 +9,7 @@ return [
         'ensure_backups_table' => true,
         'ensure_device_software_table' => true,
         'ensure_chat_messages_table' => true,
+        'ensure_warehouse_layout_table' => false,
     ],
     'stock_database' => [
         'host' => 'localhost',
@@ -19,6 +20,7 @@ return [
         'ensure_backups_table' => false,
         'ensure_device_software_table' => false,
         'ensure_chat_messages_table' => false,
+        'ensure_warehouse_layout_table' => true,
     ],
     'ftp' => [
         'host' => '127.0.0.1',   // since XAMPP + FileZilla are on same PC

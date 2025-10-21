@@ -57,6 +57,11 @@ class Database
         if ($shouldEnsureChatTable) {
             $this->ensureChatMessagesTable();
         }
+
+        $shouldEnsureWarehouseLayoutTable = $config['ensure_warehouse_layout_table'] ?? true;
+        if ($shouldEnsureWarehouseLayoutTable) {
+            $this->ensureWarehouseLayoutTable();
+        }
     }
 
     public function pdo(): PDO
@@ -136,6 +141,37 @@ SQL;
             $this->ensureChatMessageColumns();
         } catch (PDOException $exception) {
             throw new PDOException('Unable to ensure the chat_messages table exists: ' . $exception->getMessage(), (int) $exception->getCode(), $exception);
+        }
+    }
+
+    public function ensureWarehouseLayoutTable(): void
+    {
+        $sql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS `warehouse_layouts` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `location` VARCHAR(100) NOT NULL,
+    `item_key` VARCHAR(100) NOT NULL,
+    `position_x` DOUBLE NOT NULL DEFAULT 0,
+    `position_y` DOUBLE NOT NULL DEFAULT 0,
+    `position_z` DOUBLE NOT NULL DEFAULT 0,
+    `rotation_y` DOUBLE NOT NULL DEFAULT 0,
+    `updated_by` INT UNSIGNED NULL,
+    `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `warehouse_layouts_location_item_key_unique` (`location`, `item_key`),
+    INDEX `warehouse_layouts_location_idx` (`location`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+
+        try {
+            $this->pdo->exec($sql);
+
+            $this->ensureColumns('warehouse_layouts', [
+                'rotation_y' => "ALTER TABLE `warehouse_layouts` ADD COLUMN `rotation_y` DOUBLE NOT NULL DEFAULT 0 AFTER `position_z`",
+                'updated_by' => "ALTER TABLE `warehouse_layouts` ADD COLUMN `updated_by` INT UNSIGNED NULL AFTER `rotation_y`",
+                'updated_at' => "ALTER TABLE `warehouse_layouts` ADD COLUMN `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER `updated_by`",
+            ]);
+        } catch (PDOException $exception) {
+            throw new PDOException('Unable to ensure the warehouse_layouts table exists: ' . $exception->getMessage(), (int) $exception->getCode(), $exception);
         }
     }
 
