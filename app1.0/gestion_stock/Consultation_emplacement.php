@@ -166,6 +166,45 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
       transform: none;
     }
 
+    .spot-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 6px;
+      font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.65);
+      border-radius: 999px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.15);
+      white-space: nowrap;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .spot-tooltip {
+      position: fixed;
+      padding: 6px 10px;
+      font: 600 13px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      color: #0f172a;
+      background: rgba(248, 250, 252, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+      transform: translate(-50%, calc(-100% - 12px));
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+      opacity: 0;
+    }
+
+    .spot-tooltip[aria-hidden="true"] {
+      opacity: 0;
+    }
+
+    .spot-tooltip[aria-hidden="false"] {
+      opacity: 1;
+    }
+
     .top-nav {
       position: relative;
       z-index: 30;
@@ -226,6 +265,7 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   import * as THREE from 'three';
   import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
   import { DragControls } from 'three/addons/controls/DragControls.js';
+  import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 
   const isAdmin = <?= json_encode($isAdmin, JSON_THROW_ON_ERROR) ?>;
   const locationKey = <?= json_encode($currentLieu, JSON_THROW_ON_ERROR) ?>;
@@ -259,7 +299,19 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   renderer.setSize(innerWidth, innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.domElement.style.touchAction = 'none';
-  document.getElementById('app').appendChild(renderer.domElement);
+
+  const appContainer = document.getElementById('app');
+  appContainer.appendChild(renderer.domElement);
+
+  const labelRenderer = new CSS2DRenderer();
+  labelRenderer.setSize(innerWidth, innerHeight);
+  labelRenderer.domElement.style.position = 'fixed';
+  labelRenderer.domElement.style.top = '0';
+  labelRenderer.domElement.style.left = '0';
+  labelRenderer.domElement.style.width = '100%';
+  labelRenderer.domElement.style.height = '100%';
+  labelRenderer.domElement.style.pointerEvents = 'none';
+  appContainer.appendChild(labelRenderer.domElement);
 
   const topNav = document.querySelector('.top-nav');
 
@@ -321,7 +373,32 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
   const ORANGE = 0xff6b00;
   const SHELF = 0xf7fafc;
 
-  function createRack({ width = 1.8, depth = 0.6, height = 2.2, levels = 4 } = {}) {
+  const spotMeshes = [];
+
+  function createSpot({ size, position, label }) {
+    const mesh = new THREE.Mesh(
+      new THREE.BoxGeometry(size.x, size.y, size.z),
+      new THREE.MeshBasicMaterial({ color: 0x2563eb, transparent: true, opacity: 0 })
+    );
+    mesh.position.copy(position);
+    mesh.material.colorWrite = false;
+    mesh.material.depthWrite = false;
+    mesh.userData.label = label;
+    spotMeshes.push(mesh);
+
+    if (label) {
+      const labelElement = document.createElement('span');
+      labelElement.className = 'spot-label';
+      labelElement.textContent = label;
+      const labelObject = new CSS2DObject(labelElement);
+      labelObject.position.set(0, size.y / 2 + 0.12, 0);
+      mesh.add(labelObject);
+    }
+
+    return mesh;
+  }
+
+  function createRack({ width = 1.8, depth = 0.6, height = 2.2, levels = 4, rackCode = '' } = {}) {
     const rack = new THREE.Group();
     const uprGeom = new THREE.BoxGeometry(0.08, height, 0.08);
     const uprMat = new THREE.MeshStandardMaterial({ color: BLUE, metalness: 0.2, roughness: 0.6 });
@@ -364,6 +441,33 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
       rack.add(shelf);
     }
 
+    const levelLabels = ['A', 'B', 'C', 'D'];
+    const levelPositions = Array.from({ length: levels }, (_, index) => 0.25 + (index * (height - 0.5)) / (levels - 1));
+    const columnCount = 3;
+    const columnWidth = width / columnCount;
+
+    const rackSpots = new THREE.Group();
+    const labelsToUse = levelLabels.slice(0, Math.min(levelLabels.length, levelPositions.length));
+    labelsToUse.forEach((levelLabel, levelIndex) => {
+      const positionIndex = levelPositions.length - 1 - levelIndex;
+      const y = levelPositions[positionIndex];
+
+      for (let columnIndex = 0; columnIndex < columnCount; columnIndex++) {
+        const slotNumber = columnIndex + 1;
+        const x = width / 2 - (columnIndex + 0.5) * columnWidth;
+        const spotLabel = rackCode ? `${rackCode}-${levelLabel}${slotNumber}` : `${levelLabel}${slotNumber}`;
+
+        const spot = createSpot({
+          size: new THREE.Vector3(columnWidth * 0.95, 0.4, depth * 0.95),
+          position: new THREE.Vector3(x, y, 0),
+          label: spotLabel,
+        });
+        rackSpots.add(spot);
+      }
+    });
+
+    rack.add(rackSpots);
+
     return rack;
   }
 
@@ -390,9 +494,9 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
     return tableGroup;
   }
 
-  const rackNorth = createRack();
-  const rackWest = createRack();
-  const rackEast = createRack();
+  const rackNorth = createRack({ rackCode: 'AA' });
+  const rackWest = createRack({ rackCode: 'AAA' });
+  const rackEast = createRack({ rackCode: 'A' });
   const table = createTable();
 
   const doorGroup = new THREE.Group();
@@ -620,14 +724,53 @@ $gestionStockUrl = 'dashboard.php?' . http_build_query([
     camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
+    labelRenderer.setSize(innerWidth, innerHeight);
   }
 
   window.addEventListener('resize', onResize);
+
+  const tooltip = document.createElement('div');
+  tooltip.className = 'spot-tooltip';
+  tooltip.setAttribute('role', 'status');
+  tooltip.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(tooltip);
+
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+
+  function updatePointer(event) {
+    pointer.x = (event.clientX / innerWidth) * 2 - 1;
+    pointer.y = -(event.clientY / innerHeight) * 2 + 1;
+  }
+
+  function handlePointerMove(event) {
+    updatePointer(event);
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(spotMeshes, false);
+
+    if (intersects.length > 0) {
+      const { label } = intersects[0].object.userData;
+      tooltip.textContent = label ?? '';
+      tooltip.style.left = `${event.clientX}px`;
+      tooltip.style.top = `${event.clientY}px`;
+      tooltip.setAttribute('aria-hidden', 'false');
+    } else {
+      tooltip.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function handlePointerLeave() {
+    tooltip.setAttribute('aria-hidden', 'true');
+  }
+
+  renderer.domElement.addEventListener('pointermove', handlePointerMove);
+  renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
 
   function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
   }
 
   animate();
